@@ -21,14 +21,12 @@
  * tsf-smt and tsf-upnp use, and the engine side parses them.
  */
 
-/* Feature bits for cv_available.out.features and tapi_cv_supports(). */
-enum {
-    TARPC_CV_FEAT_OCR     = 1,  /* OCR, via libtesseract. */
-    TARPC_CV_FEAT_QR      = 2,  /* QR decode, via cv::QRCodeDetector. */
-    TARPC_CV_FEAT_BARCODE = 4   /* 1-D barcode decode, via cv::barcode. */
-};
-
 /*
+ * The feature bits carried in cv_available.out.features (OCR = 1, QR = 2,
+ * barcode = 4) and the cv_decode kind (QR = 1, barcode = 2, any = 3) are
+ * plain integers on the wire; their named forms live in ta_cv.h (agent)
+ * and tapi_cv.h (engine), not here - XDR has no anonymous enum.
+ *
  * cv_available(): is OpenCV compiled into this agent and able to run a
  * trivial operation? retval is 0 when it is. features is a bitmask of
  * the optional backends that are present (OCR, QR, barcode).
