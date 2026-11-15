@@ -34,7 +34,7 @@
  *     TEST_SKIP("The agent has no OpenCV");
  *
  * // Is the OK button on the screenshot, and where?
- * CHECK_RC(tapi_cv_match(pco, "/tmp/screen.png", "/tmp/ok_button.png",
+ * CHECK_RC(tapi_cv_match_all(pco, "/tmp/screen.png", "/tmp/ok_button.png",
  *                        NULL, &found));
  * if (found.best < 0.9)
  *     TEST_VERDICT("OK button not found (best score %.2f)", found.best);
@@ -131,7 +131,7 @@ typedef struct tapi_cv_diff {
     char *diff_path;            /**< Heatmap on the agent, or @c NULL. */
 } tapi_cv_diff;
 
-/** Options for tapi_cv_match(). Zeroed means CCOEFF_NORMED, 1 match. */
+/** Options for tapi_cv_match_all(). Zeroed means CCOEFF_NORMED, 1 match. */
 typedef struct tapi_cv_match_opts {
     tapi_cv_match_method method;    /**< Method; default CCOEFF_NORMED. */
     double threshold;               /**< Min score to report, 0..1. */
@@ -144,7 +144,7 @@ typedef struct tapi_cv_match {
     int x, y, w, h;         /**< Where it matched (top-left and size). */
 } tapi_cv_match;
 
-/** The result of tapi_cv_match(). */
+/** The result of tapi_cv_match_all(). */
 typedef struct tapi_cv_matches {
     double best;            /**< Best score anywhere, even below threshold. */
     te_vec matches;         /**< Vector of #tapi_cv_match, best first. */
@@ -212,7 +212,7 @@ extern bool tapi_cv_supports(rcf_rpc_server *rpcs, tapi_cv_feature feature);
  *
  * @return Status code; @c TE_ESHCMD when the image cannot be read.
  */
-extern te_errno tapi_cv_image_info(rcf_rpc_server *rpcs, const char *path,
+extern te_errno tapi_cv_info(rcf_rpc_server *rpcs, const char *path,
                                    tapi_cv_image_info *info);
 
 /**
@@ -259,7 +259,7 @@ extern bool tapi_cv_images_equal(rcf_rpc_server *rpcs, const char *path_a,
  * @return Status code. @c TE_EFAIL when the template is larger than the
  *         image.
  */
-extern te_errno tapi_cv_match(rcf_rpc_server *rpcs, const char *image,
+extern te_errno tapi_cv_match_all(rcf_rpc_server *rpcs, const char *image,
                               const char *templ,
                               const tapi_cv_match_opts *opts,
                               tapi_cv_matches *matches);
@@ -267,7 +267,7 @@ extern te_errno tapi_cv_match(rcf_rpc_server *rpcs, const char *image,
 /**
  * Is a template present, and where is the best match?
  *
- * A convenience over tapi_cv_match(): @c true when the best match
+ * A convenience over tapi_cv_match_all(): @c true when the best match
  * reaches @p threshold.
  *
  * @param[in]  rpcs       RPC server on the agent.

@@ -55,7 +55,7 @@ if (!tapi_cv_available(pco))
     TEST_SKIP("The agent has no OpenCV");
 
 /* Is the OK button on the screenshot, and where? */
-CHECK_RC(tapi_cv_match(pco, "/tmp/screen.png", "/tmp/ok_button.png",
+CHECK_RC(tapi_cv_match_all(pco, "/tmp/screen.png", "/tmp/ok_button.png",
                        NULL, &found));
 if (found.best < 0.9)
     TEST_VERDICT("OK button not found (best score %.2f)", found.best);

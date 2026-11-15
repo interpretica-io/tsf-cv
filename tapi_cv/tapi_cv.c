@@ -116,7 +116,7 @@ tapi_cv_supports(rcf_rpc_server *rpcs, tapi_cv_feature feature)
 
 /* See description in tapi_cv.h */
 te_errno
-tapi_cv_image_info(rcf_rpc_server *rpcs, const char *path,
+tapi_cv_info(rcf_rpc_server *rpcs, const char *path,
                    tapi_cv_image_info *info)
 {
     te_string format = TE_STRING_INIT;
@@ -207,7 +207,7 @@ match_line(char *line, void *ctx)
 
 /* See description in tapi_cv.h */
 te_errno
-tapi_cv_match(rcf_rpc_server *rpcs, const char *image, const char *templ,
+tapi_cv_match_all(rcf_rpc_server *rpcs, const char *image, const char *templ,
               const tapi_cv_match_opts *opts, tapi_cv_matches *matches)
 {
     te_string text = TE_STRING_INIT;
@@ -242,7 +242,7 @@ tapi_cv_find(rcf_rpc_server *rpcs, const char *image, const char *templ,
     tapi_cv_matches matches;
     bool found;
 
-    if (tapi_cv_match(rpcs, image, templ, &opts, &matches) != 0)
+    if (tapi_cv_match_all(rpcs, image, templ, &opts, &matches) != 0)
         return false;
 
     found = te_vec_size(&matches.matches) > 0;

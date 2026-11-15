@@ -71,7 +71,10 @@ cv_image_info(const char *path, int *width, int *height, int *channels,
 
 TARPC_FUNC_STATIC(cv_image_info, {},
 {
-    int width = 0, height = 0, channels = 0, depth = 0;
+    int width = 0;
+    int height = 0;
+    int channels = 0;
+    int depth = 0;
 
     MAKE_CALL(out->retval = func(in->path, &width, &height, &channels,
                                  &depth, &out->format));
@@ -105,9 +108,17 @@ cv_compare(const char *path_a, const char *path_b, int tolerance,
 
 TARPC_FUNC_STATIC(cv_compare, {},
 {
-    unsigned int diff_pixels = 0, total_pixels = 0;
-    int max_delta = 0, mean_delta = 0, mse = 0, psnr = 0, ssim = 0;
-    int bx = -1, by = -1, bw = -1, bh = -1;
+    unsigned int diff_pixels = 0;
+    unsigned int total_pixels = 0;
+    int max_delta = 0;
+    int mean_delta = 0;
+    int mse = 0;
+    int psnr = 0;
+    int ssim = 0;
+    int bx = -1;
+    int by = -1;
+    int bw = -1;
+    int bh = -1;
 
     MAKE_CALL(out->retval = func(in->path_a, in->path_b, in->tolerance,
                                  in->want_diff, &diff_pixels, &total_pixels,
@@ -169,8 +180,16 @@ cv_region(const char *image, int x, int y, int w, int h, te_bool use_color,
 
 TARPC_FUNC_STATIC(cv_region, {},
 {
-    int mean_b = 0, mean_g = 0, mean_r = 0, min_v = 0, max_v = 0, inr = 0;
-    int bx = -1, by = -1, bw = -1, bh = -1;
+    int mean_b = 0;
+    int mean_g = 0;
+    int mean_r = 0;
+    int min_v = 0;
+    int max_v = 0;
+    int inr = 0;
+    int bx = -1;
+    int by = -1;
+    int bw = -1;
+    int bh = -1;
 
     MAKE_CALL(out->retval = func(in->image, in->x, in->y, in->w, in->h,
                                  in->use_color, in->h_lo, in->s_lo, in->v_lo,
