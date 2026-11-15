@@ -45,9 +45,10 @@ deps += [ opencv_dep ]
 
 # The agent application (ta_rpcprovider) is linked with the C compiler
 # driver (cc), which does not pull in the C++ runtime on its own. This
-# library's one C++ unit and OpenCV need it, so name libstdc++ as a
-# dependency; meson propagates it onto the agent's final link line.
-deps += cxx.find_library('stdc++')
+# library's one C++ unit and OpenCV need it, so force -lstdc++ onto the
+# dependents' link line (a plain -l so the linker uses its own gcc search
+# path); meson propagates a dependency's link_args to the agent's link.
+deps += declare_dependency(link_args: ['-lstdc++'])
 
 cv_defs = []
 
