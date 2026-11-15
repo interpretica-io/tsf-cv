@@ -632,37 +632,55 @@ ta_cv_decode_raw(const char *image, int kind, int *count, char **codes)
             cv::QRCodeDetector qr;
 
             /*
-             * The single-code path is more reliable than the multi one
-             * on several OpenCV builds, so try it first; fall back to the
-             * multi path (several symbols in one image) when it finds
-             * nothing.
+             * The multi path (several symbols in one image) is the
+             * primary one: on a QUIRC-enabled OpenCV it decodes a lone
+             * symbol as reliably as the single path and additionally
+             * finds every symbol when there is more than one. Fall back
+             * to the single path when multi finds nothing, which covers
+             * the odd build on which multi is weaker.
              */
-            std::vector<cv::Point2f> one_pts;
-            std::string one = qr.detectAndDecode(img, one_pts);
-            if (!one.empty())
-            {
-                cv::Rect bb = one_pts.size() >= 4 ? cv::boundingRect(one_pts)
-                                                  : cv::Rect(-1, -1, -1, -1);
-                append_code(out, "QR", bb, one);
-                n++;
-            }
-            else
-            {
-                std::vector<std::string> texts;
-                std::vector<cv::Point2f> pts;
+            std::vector<std::string> texts;
+            std::vector<cv::Point2f> pts;
+            bool multi = false;
 
-                if (qr.detectAndDecodeMulti(img, texts, pts))
+            try
+            {
+                multi = qr.detectAndDecodeMulti(img, texts, pts);
+            }
+            catch (const std::exception &)
+            {
+                multi = false;
+            }
+
+            if (multi)
+            {
+                for (size_t i = 0; i < texts.size(); i++)
                 {
-                    for (size_t i = 0; i < texts.size(); i++)
+                    if (texts[i].empty())
+                        continue;
+                    cv::Rect bb(-1, -1, -1, -1);
+                    if (pts.size() >= (i + 1) * 4)
                     {
-                        if (texts[i].empty())
-                            continue;
                         std::vector<cv::Point2f> quad(pts.begin() + i * 4,
                                                       pts.begin() + i * 4 + 4);
-                        cv::Rect bb = cv::boundingRect(quad);
-                        append_code(out, "QR", bb, texts[i]);
-                        n++;
+                        bb = cv::boundingRect(quad);
                     }
+                    append_code(out, "QR", bb, texts[i]);
+                    n++;
+                }
+            }
+
+            if (n == 0)
+            {
+                std::vector<cv::Point2f> one_pts;
+                std::string one = qr.detectAndDecode(img, one_pts);
+                if (!one.empty())
+                {
+                    cv::Rect bb = one_pts.size() >= 4
+                                      ? cv::boundingRect(one_pts)
+                                      : cv::Rect(-1, -1, -1, -1);
+                    append_code(out, "QR", bb, one);
+                    n++;
                 }
             }
         }
