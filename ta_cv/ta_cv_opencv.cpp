@@ -124,13 +124,50 @@ sniff_format(const char *path)
 
 /* ---- available ---------------------------------------------------- */
 
+/*
+ * Can this OpenCV actually decode a QR code? The QRCodeDetector type is
+ * always present (objdetect), but decoding needs OpenCV to have been
+ * built with QUIRC; without it detectAndDecode() silently returns "". So
+ * probe a real round-trip - encode a tiny code and decode it - and only
+ * then report QR as available, the same honesty the OCR/barcode gates
+ * give. The encoder is not always present either (older OpenCV), in
+ * which case QR decoding is reported unavailable too.
+ */
+static bool
+qr_decode_works()
+{
+    try
+    {
+        cv::Ptr<cv::QRCodeEncoder> enc = cv::QRCodeEncoder::create();
+        cv::Mat code;
+
+        enc->encode("tsf-cv", code);
+        if (code.empty())
+            return false;
+
+        cv::Mat big;
+        cv::copyMakeBorder(code, big, 4, 4, 4, 4, cv::BORDER_CONSTANT,
+                           cv::Scalar(255));
+        cv::resize(big, big, cv::Size(), 8, 8, cv::INTER_NEAREST);
+
+        cv::QRCodeDetector det;
+        return !det.detectAndDecode(big).empty();
+    }
+    catch (const std::exception &)
+    {
+        return false;
+    }
+}
+
 extern "C" int
 ta_cv_available_raw(unsigned int *features, char **version)
 {
     try
     {
-        unsigned int feats = CV_FEAT_QR; /* objdetect is always linked */
+        unsigned int feats = 0;
 
+        if (qr_decode_works())
+            feats |= CV_FEAT_QR;
 #ifdef TA_CV_HAVE_TESSERACT
         feats |= CV_FEAT_OCR;
 #endif
