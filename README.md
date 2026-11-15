@@ -148,16 +148,23 @@ TE with `TE_EXT_REPO` support and an agent with an **RPC server**
 
 ## What was verified, and what was not
 
-**The C/C++ library code was not compiled here.** This environment had
-no TE toolchain and no OpenCV/tesseract development headers, so `ta_cv.c`,
-`ta_cv_opencv.cpp`, `rpcs_cv.c`, `tapi_cv*.c` and the TE integration (the
-three `meson.build`s, `cv_rpc.x.m4`, `TE_EXT_REPO` wiring) were written
-to the `tsf-smt` template but **not built or run**. The companion suite
-`tsf-cv-ts` drives every call against deterministic synthetic images
-generated on the agent and is the first thing to build it; the first
-real build should expect the ordinary first-build fixes, and in
-particular an OpenCV version or module-name adjustment (`cv::barcode` and
-the `detectAndDecodeMulti` signature are the likeliest).
+**Built and run through a Test Agent, on OpenCV 4.6.0.** The companion
+suite `tsf-cv-ts` builds all three libraries into a Debian-bookworm agent
+(`./scripts/run.sh docker guess --cfg=localhost`) and drives every call
+against deterministic synthetic images generated on the agent. The
+`image_info`, `compare` (SSIM/PSNR/MSE and a boxed change), `match`
+(template found at its pixel, absent one not), `region` (the green
+indicator over an HSV range) and `ocr` (libtesseract) operations all
+pass against the real libraries.
+
+**QR decoding needs OpenCV built with QUIRC.** `cv::QRCodeDetector`
+exists in every OpenCV, but decoding is a no-op unless OpenCV was built
+with QUIRC (Debian's `libopencv` is not). `ta_cv_available()` probes a
+real encode→decode round-trip and reports the QR feature only when it
+works, so a suite skips QR decode on such an agent rather than failing;
+`tsf-cv-ts`'s `decode` test skips on the Debian image for exactly this
+reason. 1-D barcode decoding is likewise gated on `cv::barcode` being
+present.
 
 ## Scope
 
