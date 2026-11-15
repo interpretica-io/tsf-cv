@@ -593,20 +593,39 @@ ta_cv_decode_raw(const char *image, int kind, int *count, char **codes)
         if (want_qr)
         {
             cv::QRCodeDetector qr;
-            std::vector<std::string> texts;
-            std::vector<cv::Point2f> pts;
 
-            if (qr.detectAndDecodeMulti(img, texts, pts))
+            /*
+             * The single-code path is more reliable than the multi one
+             * on several OpenCV builds, so try it first; fall back to the
+             * multi path (several symbols in one image) when it finds
+             * nothing.
+             */
+            std::vector<cv::Point2f> one_pts;
+            std::string one = qr.detectAndDecode(img, one_pts);
+            if (!one.empty())
             {
-                for (size_t i = 0; i < texts.size(); i++)
+                cv::Rect bb = one_pts.size() >= 4 ? cv::boundingRect(one_pts)
+                                                  : cv::Rect(-1, -1, -1, -1);
+                append_code(out, "QR", bb, one);
+                n++;
+            }
+            else
+            {
+                std::vector<std::string> texts;
+                std::vector<cv::Point2f> pts;
+
+                if (qr.detectAndDecodeMulti(img, texts, pts))
                 {
-                    if (texts[i].empty())
-                        continue;
-                    std::vector<cv::Point2f> quad(pts.begin() + i * 4,
-                                                  pts.begin() + i * 4 + 4);
-                    cv::Rect bb = cv::boundingRect(quad);
-                    append_code(out, "QR", bb, texts[i]);
-                    n++;
+                    for (size_t i = 0; i < texts.size(); i++)
+                    {
+                        if (texts[i].empty())
+                            continue;
+                        std::vector<cv::Point2f> quad(pts.begin() + i * 4,
+                                                      pts.begin() + i * 4 + 4);
+                        cv::Rect bb = cv::boundingRect(quad);
+                        append_code(out, "QR", bb, texts[i]);
+                        n++;
+                    }
                 }
             }
         }
