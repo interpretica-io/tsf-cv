@@ -1,0 +1,47 @@
+name: build
+
+# Buildability check for the one compiled unit in this module, the OpenCV
+# C++ seam (ta_cv_opencv.cpp). It is deliberately free of Test Environment
+# headers, so it compiles standalone against OpenCV - which is what this
+# job does, with the optional barcode and tesseract backends enabled when
+# their headers are present (mirroring ta_cv/meson.build). The C
+# dispatcher, the RPCs and the engine TAPI need the TE build tree and are
+# exercised by the companion suite tsf-cv-ts, not here.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install a C++ compiler, OpenCV and tesseract
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            g++ pkg-config libopencv-dev libtesseract-dev libleptonica-dev
+
+      - name: Compile the OpenCV unit (ta_cv_opencv.cpp)
+        run: |
+          set -eux
+          cflags="$(pkg-config --cflags opencv4)"
+          defs=""
+          # Enable the optional backends only when their headers exist,
+          # exactly as ta_cv/meson.build gates them.
+          if printf '#include <opencv2/objdetect/barcode.hpp>\n' | \
+               g++ -std=c++14 -x c++ -fsyntax-only - $cflags 2>/dev/null; then
+            defs="$defs -DTA_CV_HAVE_BARCODE"
+          fi
+          if printf '#include <tesseract/baseapi.h>\n' | \
+               g++ -std=c++14 -x c++ -fsyntax-only - 2>/dev/null; then
+            defs="$defs -DTA_CV_HAVE_TESSERACT"
+          fi
+          echo "optional defines:${defs:- (none)}"
+          g++ -std=c++14 -Wall -Wextra $defs \
+            -c ta_cv/ta_cv_opencv.cpp $cflags -o ta_cv_opencv.o
+          echo "ta_cv_opencv.cpp compiled cleanly"

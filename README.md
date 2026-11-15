@@ -1,5 +1,7 @@
 # tsf-cv
 
+[![build](https://github.com/interpretica-io/tsf-cv/actions/workflows/build.yml/badge.svg)](https://github.com/interpretica-io/tsf-cv/actions/workflows/build.yml)
+
 Computer vision from a Test Agent, packaged as an external Test
 Environment (TE) repository (consumed with the `TE_EXT_REPO` builder
 directive). It analyses an image on the agent over OpenCV's own **C++
@@ -172,6 +174,16 @@ OCR whole and by region, format and depth sniffing
 match, a realistic end-to-end screenshot, a robustness group
 (malformed-input crash-safety and metamorphic invariants), and a barcode
 control against OpenCV's own reference photos.
+
+## Continuous integration
+
+`.github/workflows/build.yml` compiles the one compiled unit of this
+module, the OpenCV C++ seam `ta_cv_opencv.cpp`, against a distribution
+OpenCV (with the barcode and tesseract backends enabled when their headers
+are present). It is header-clean of Test Environment types by design, so
+it builds standalone; the C dispatcher, the RPCs and the engine TAPI need
+the TE build tree and are exercised end to end by the companion suite
+[tsf-cv-ts](https://github.com/interpretica-io/tsf-cv-ts).
 
 ## Scope
 
