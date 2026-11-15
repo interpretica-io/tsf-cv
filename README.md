@@ -161,10 +161,25 @@ pass against the real libraries.
 exists in every OpenCV, but decoding is a no-op unless OpenCV was built
 with QUIRC (Debian's `libopencv` is not). `ta_cv_available()` probes a
 real encode→decode round-trip and reports the QR feature only when it
-works, so a suite skips QR decode on such an agent rather than failing;
-`tsf-cv-ts`'s `decode` test skips on the Debian image for exactly this
-reason. 1-D barcode decoding is likewise gated on `cv::barcode` being
-present.
+works, so a suite skips QR decode on such an agent rather than failing.
+1-D barcode decoding is likewise gated on `cv::barcode` being present.
+
+The companion suite's Docker image builds **OpenCV 4.10 from source with
+QUIRC and the barcode module**, and against it `tsf-cv-ts` exercises every
+operation live: QR (one and two symbols), OCR whole and by region, format
+and depth sniffing (JPEG/BMP/TIFF/grey/16-bit), the diff heatmap, a
+multi-location template match, a realistic end-to-end screenshot, and a
+robustness group (malformed-input crash-safety and metamorphic
+invariants).
+
+**Defects found in OpenCV by that suite.** Two, both genuine: (1)
+`cv::barcode::BarcodeDetector` decodes **nothing** from a clean synthetic
+EAN-13 even with the module compiled in and QR working on the same agent
+— its detector needs a DNN model OpenCV does not bundle; (2)
+`TM_CCOEFF_NORMED` / `TM_CCORR_NORMED` are **degenerate on a uniform
+template** (they divide by the template's zero standard deviation),
+scoring 1.0 across a flat background — use `TM_SQDIFF` for solid-colour
+templates. See `tsf-cv-ts`'s README "Defects found".
 
 ## Scope
 
