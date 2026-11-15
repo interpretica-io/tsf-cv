@@ -43,6 +43,12 @@ if not opencv_dep.found()
 endif
 deps += [ opencv_dep ]
 
+# The agent application (ta_rpcprovider) is linked with the C compiler
+# driver (cc), which does not pull in the C++ runtime on its own. This
+# library's one C++ unit and OpenCV need it, so name libstdc++ as a
+# dependency; meson propagates it onto the agent's final link line.
+deps += cxx.find_library('stdc++')
+
 cv_defs = []
 
 # 1-D barcode decoding: OpenCV folds cv::barcode into the objdetect
