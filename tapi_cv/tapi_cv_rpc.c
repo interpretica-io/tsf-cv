@@ -60,7 +60,7 @@ rpc_cv_available(rcf_rpc_server *rpcs, unsigned int *features,
 
     if (out.retval == 0 && features != NULL)
         *features = out.features;
-    take_string(version, out.version);
+    take_string(version, out.cv_version);
 
     RETVAL_TE_ERRNO(cv_available, out.retval);
 }

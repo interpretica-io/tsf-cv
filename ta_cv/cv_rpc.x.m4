@@ -40,7 +40,8 @@ struct tarpc_cv_available_out {
 
     tarpc_int       retval;
     tarpc_uint      features;
-    string          version<>;     /* OpenCV version, e.g. "4.6.0" */
+    string          cv_version<>;  /* OpenCV version, e.g. "4.6.0";
+                                    * not "version" - an RPC keyword */
 };
 
 /*

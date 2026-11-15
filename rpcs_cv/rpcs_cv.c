@@ -49,7 +49,7 @@ TARPC_FUNC_STATIC(cv_available, {},
 {
     unsigned int features = 0;
 
-    MAKE_CALL(out->retval = func(&features, &out->version));
+    MAKE_CALL(out->retval = func(&features, &out->cv_version));
     out->features = features;
     out->common.errno_changed = false;
 })
