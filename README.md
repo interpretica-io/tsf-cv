@@ -12,7 +12,7 @@ Three libraries:
 
 - `ta_cv`: agent side. Image analysis over **OpenCV's C++ API**
   (`opencv2/...`, `-lopencv_*`) and, optionally, OCR over
-  **libtesseract**: the libraries are linked into the agent and called
+  **libtesseract**: the agent links the libraries and calls them
   in-process. All the vision work is one C++ unit (`ta_cv_opencv.cpp`,
   the only C++ in the repository) behind a plain-C seam; the C
   dispatcher (`ta_cv.c`) adapts it to TE's types. The agent and its RPC
@@ -27,9 +27,9 @@ TE has nothing for looking at an image. `tsf-ai` can send one to an LLM
 provider (vision-through-an-LLM: a key, the network, tokens spent);
 `tsf-cv` is ordinary computer vision, run where the image already is.
 
-## What it pairs with
+## Pairs with
 
-The image is analysed on the agent, so `tsf-cv` is the assertion layer
+`tsf-cv` analyses the image on the agent, so it is the assertion layer
 over whatever puts an image there: a screenshot from `tsf-playwright`,
 `tsf-android` or `tsf-apple`, a framebuffer dump from `tsf-emu`, a frame
 grabbed from a device. Nothing of the image leaves the agent, so there is
@@ -69,10 +69,10 @@ tapi_cv_matches_free(&found);
 
 `ta_cv` does not run a `convert` or a `tesseract` command and scrape its
 printout. It links OpenCV (and libtesseract) and calls the API in the
-agent's RPC server process: an image is decoded by OpenCV (`cv::imread`),
-a template is located by `cv::matchTemplate`, a colour share by
-`cv::inRange`, a QR by `cv::QRCodeDetector`, text by a
-`tesseract::TessBaseAPI`. Results come back as the library's own numbers
+agent's RPC server process: `cv::imread` decodes an image,
+`cv::matchTemplate` locates a template, `cv::inRange` measures a colour
+share, `cv::QRCodeDetector` reads a QR, a `tesseract::TessBaseAPI` reads
+text. The results come back as the library's own numbers
 and objects, never parsed from text.
 
 XDR has no portable floating-point type, so every real-valued metric
@@ -148,7 +148,7 @@ TE with `TE_EXT_REPO` support and an agent with an **RPC server**
 (`ta_rpcprovider`). The RPC program number is **43**; change it in
 `cv_rpc.x.m4` if it ever collides.
 
-## What was verified, and what was not
+## Coverage, and the OpenCV support it needs
 
 **Built and run through a Test Agent, on OpenCV 4.14.0.** The companion
 suite `tsf-cv-ts` builds all three libraries into a Debian-bookworm agent
@@ -182,8 +182,9 @@ module, the OpenCV C++ seam `ta_cv_opencv.cpp`, against a distribution
 OpenCV (with the barcode and tesseract backends enabled when their headers
 are present). It is header-clean of Test Environment types by design, so
 it builds standalone; the C dispatcher, the RPCs and the engine TAPI need
-the TE build tree and are exercised end to end by the companion suite
-[tsf-cv-ts](https://github.com/interpretica-io/tsf-cv-ts).
+the TE build tree, and the companion suite
+[tsf-cv-ts](https://github.com/interpretica-io/tsf-cv-ts) exercises them
+end to end.
 
 ## Scope
 
