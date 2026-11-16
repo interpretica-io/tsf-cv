@@ -5,22 +5,22 @@
 Computer vision from a Test Agent, packaged as an external Test
 Environment (TE) repository (consumed with the `TE_EXT_REPO` builder
 directive). It analyses an image on the agent over OpenCV's own **C++
-library API — no Python, nothing spawned** — and reads the result back
+library API** (no Python, nothing spawned) and reads the result back
 as structured data.
 
 Three libraries:
 
-- `ta_cv` — agent side. Image analysis over **OpenCV's C++ API**
+- `ta_cv`: agent side. Image analysis over **OpenCV's C++ API**
   (`opencv2/...`, `-lopencv_*`) and, optionally, OCR over
   **libtesseract**: the libraries are linked into the agent and called
   in-process. All the vision work is one C++ unit (`ta_cv_opencv.cpp`,
   the only C++ in the repository) behind a plain-C seam; the C
   dispatcher (`ta_cv.c`) adapts it to TE's types. The agent and its RPC
   server both link it.
-- `rpcs_cv` — the `cv_*` RPCs for the RPC server of the agent, thin
+- `rpcs_cv`: the `cv_*` RPCs for the RPC server of the agent, thin
   wrappers over `ta_cv`. The analysis happens on the agent, in the RPC
   server process.
-- `tapi_cv` — engine side. `tapi_cv.h` gives a test the high-level
+- `tapi_cv`: engine side. `tapi_cv.h` gives a test the high-level
   calls; `tapi_cv_rpc.h` is the one-per-RPC layer beneath it.
 
 TE has nothing for looking at an image. `tsf-ai` can send one to an LLM
@@ -32,7 +32,7 @@ provider (vision-through-an-LLM: a key, the network, tokens spent);
 The image is analysed on the agent, so `tsf-cv` is the assertion layer
 over whatever puts an image there: a screenshot from `tsf-playwright`,
 `tsf-android` or `tsf-apple`, a framebuffer dump from `tsf-emu`, a frame
-grabbed from a device. Nothing of the image leaves the agent — there is
+grabbed from a device. Nothing of the image leaves the agent, so there is
 no service, no key, no network.
 
 ## Operations
@@ -40,9 +40,9 @@ no service, no key, no network.
 | Call | What it answers |
 |---|---|
 | `tapi_cv_image_info` | Dimensions, channels, depth, container of an image |
-| `tapi_cv_compare` | Pixel diff of two images: changed-pixel count and box, max/mean delta, MSE, PSNR, SSIM, and an optional heatmap — the visual-regression primitive |
+| `tapi_cv_compare` | Pixel diff of two images: changed-pixel count and box, max/mean delta, MSE, PSNR, SSIM, and an optional heatmap, the visual-regression primitive |
 | `tapi_cv_match` | Find a template (an icon, a button) inside an image: best score and the matching locations |
-| `tapi_cv_region` | Mean colour of a rectangle and the share of it inside an HSV range — "is the indicator green?" |
+| `tapi_cv_region` | Mean colour of a rectangle and the share of it inside an HSV range ("is the indicator green?") |
 | `tapi_cv_ocr` | Recognise text (whole image or a rectangle), with per-word boxes and confidence |
 | `tapi_cv_decode` | Decode QR and 1-D barcode symbols, with payloads and boxes |
 
@@ -78,7 +78,7 @@ and objects, never parsed from text.
 XDR has no portable floating-point type, so every real-valued metric
 (SSIM, PSNR, MSE, a colour share, a match score) travels over the RPC as
 a scaled integer in milli-units and `tapi_cv` turns it back into a
-double. Lists — template matches, OCR words, decoded codes — come back
+double. Lists (template matches, OCR words, decoded codes) come back
 as newline-separated records, the same shape `tsf-smt` and `tsf-upnp`
 use, which the engine side parses.
 
@@ -87,9 +87,9 @@ use, which the engine side parses.
 QR decoding is part of OpenCV's `objdetect` module and is always there.
 Two backends are optional and compiled in only when the agent has them:
 
-- **OCR** — `libtesseract` (plus `leptonica`) and a language data file.
+- **OCR**: `libtesseract` (plus `leptonica`) and a language data file.
   Without it `tapi_cv_ocr()` returns `TE_EOPNOTSUPP`.
-- **1-D barcodes** — `cv::barcode`, folded into OpenCV's `objdetect`
+- **1-D barcodes**: `cv::barcode`, folded into OpenCV's `objdetect`
   from 4.8 (and in `opencv_contrib` before that). Without it
   `tapi_cv_decode()` still serves QR.
 
@@ -98,7 +98,7 @@ the agent cannot do rather than failing it.
 
 ## Agent host requirements
 
-- **OpenCV 4.x** with development headers and shared libraries — Debian:
+- **OpenCV 4.x** with development headers and shared libraries. Debian:
   `apt install libopencv-dev` (gives `opencv4.pc`, or the
   `libopencv_core`/`imgcodecs`/`imgproc`/`objdetect` the meson finds
   directly). The API used here (`imread`, `matchTemplate`, `inRange`,
@@ -194,4 +194,4 @@ the TE build tree and are exercised end to end by the companion suite
 - **An image file is the unit, and it lives on the agent.** A call takes
   a path on the agent; a test that holds an image on the engine copies
   it over first (TE's file transfer). `tsf-cv` reads images, it does not
-  grab them — that is what the screenshot/framebuffer modules are for.
+  grab them; that is what the screenshot/framebuffer modules are for.
